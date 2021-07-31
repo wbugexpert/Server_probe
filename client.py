@@ -56,19 +56,25 @@ def get_opt():
             sys.exit()
 
 
-def get_network_ip(ip):
+def get_network_ip(ipv4,ipv6):
     try:
-        hostname = socket.getfqdn(socket.gethostname())
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        ip.append(s.getsockname()[0])
-    except:
-        ip.append("error")
-    tmp=os.popen('ifconfig').read()
-    if re.search(r'(....::....:....:....:....)',tmp) and re.search(r'(....::....:....:....:....)',tmp).group(1).find("fe",0,2)==-1:
-        ip.append(re.search(r'(....::....:....:....:....)',tmp).group(1))
-    else:
-        ip.append("error")
+        tmp=os.popen("ifconfig | grep inet6 | awk '{print $2}'").read()
+        for line in tmp.splitlines():
+            if line.find("fe",0,2)==-1 and line!="::1":
+                ipv6.append(line)
+    finally:
+        if len(ipv6)==0:
+            ipv6.append("error")
+    try:
+        tmp=os.popen("ifconfig | grep inet | awk '{print $2}'").read()
+        for line in tmp.splitlines():
+            if line not in ipv6 and line.find("fe",0,2)==-1 and line!="::1" and line!="127.0.0.1":
+                ipv4.append(line)
+    finally:
+        if len(ipv4)==0:
+            ipv4.append("error")
+            
+
     return  0
 
 def str_cnt(str1,str2):
@@ -170,10 +176,11 @@ def func():
     data['net_recv_speed']=str(calbyte(net_recv_speed)[0])+calbyte(net_recv_speed)[1]+"/s"
     data['net_sent']=str(calbyte(net_sent)[0])+calbyte(net_sent)[1]
     data['net_recv']=str(calbyte(net_recv)[0])+calbyte(net_recv)[1]
-    ip=[]
-    get_network_ip(ip)
-    data['ipv4']=ip[0]
-    data['ipv6']=ip[1]
+    ipv4=[]
+    ipv6=[]
+    get_network_ip(ipv4,ipv6)
+    data['ipv4']=ipv4
+    data['ipv6']=ipv6
     tcp=[]
     tcp_stat=["tcp","LISTEN","SYN_SENT","SYN_RECEIVED","ESTABLISHED","FIN_WAIT_1","CLOSE_WAIT","CLOSING","LAST_ACK","TIME_WAIT","CLOSED"]
     get_tcp_connection(tcp,tcp_stat)
@@ -184,6 +191,7 @@ def func():
     data['tcp_stat']=tcp_dict
     udp=get_udp_connection()
     data['udp_total']=str(udp)
+    data['mac']=os.popen("ifconfig|grep ether|awk '{print $2}'").readline()
     return data
 
 
@@ -195,10 +203,12 @@ if __name__=="__main__":
             sock.connect((server_address, int(web_port)))
             src_data=func()
             src_data['password']=pwd
-            data=json.dumps(src_data)       
+            data=json.dumps(src_data)
+            if not data:
+                continue
             sock.send(data.encode()) 
             print ('send to server with value: ',data)
             sock.close()
         except:
-            continue
-
+            sock.close()
+            sys.exit()
