@@ -106,6 +106,8 @@ if __name__=="__main__":
         try: 
             with eventlet.Timeout(1, True):
                 buf = connection.recv(1024).decode()
+                while buf[len(buf)-1]!="}":
+                    buf+=connection.recv(1024).decode()
                 if not buf:
                     continue
                 data=json.loads(buf)
