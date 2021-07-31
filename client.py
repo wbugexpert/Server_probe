@@ -214,6 +214,10 @@ if __name__=="__main__":
             sock.send(data.encode()) 
             print ('send to server with value: ',data)
             sock.close()
-        except:
-            sock.close()
-            print("发送数据不成功")
+        except KeyboardInterrupt:
+            raise
+        except socket.error:
+            print("数据发送不成功...")
+            time.sleep(3)
+        except Exception as e:
+            print("Caught Exception:", e)
