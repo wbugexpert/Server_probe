@@ -39,7 +39,7 @@ class Resquest(BaseHTTPRequestHandler):
     def do_GET(self):
         full_path = os.getcwd() + "/dash.html"
         #self.send_header("Access-Control-Allow-Origin", "*")
-        if self.path!='/status.json':
+        if self.path!='/status.json?'+pwd:
             page=open(full_path,"rb").read()
             self.send_response(200)
             self.send_header("Content-type", "text/html")
