@@ -4,8 +4,10 @@ import time
 import os
 import json
 import sys
+import psutil
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
+import eventlet
 
 pwd=""
 msg_port=""
@@ -32,6 +34,7 @@ class Resquest(BaseHTTPRequestHandler):
   
     def do_GET(self):
         full_path = os.getcwd() + "/dash.html"
+        #self.send_header("Access-Control-Allow-Origin", "*")
         if self.path!='/status.json':
             page=open(full_path,"rb").read()
             self.send_response(200)
@@ -67,9 +70,9 @@ class Resquest(BaseHTTPRequestHandler):
 
 def check_hostname(list,tag):
     for i in range(0,len(list)):
-        if tag == list[i]['hostname']:
+        if tag == list[i]['mac']:
             return i
-    return 9999999
+    return -1
 
 def web_server():
     server = HTTPServer(('',int(web_port)), Resquest)
@@ -81,20 +84,26 @@ if __name__=="__main__":
     sock.bind(('0.0.0.0', int(msg_port)))  #配置soket，绑定IP地址和端口号  
     sock.listen(100) #设置最大允许连接数，各连接和server的通信遵循FIFO原则    
     threading.Thread(target=web_server).start() 
+    print("服务端")
     while True:
         connection,address = sock.accept()
-        buf = connection.recv(1024*1024).decode()
-        if not buf:
+        eventlet.monkey_patch()
+        try: 
+            with eventlet.Timeout(1, True):
+                buf = connection.recv(1024*1024).decode()
+                if not buf:
+                    continue
+                data=json.loads(buf)
+                print(data)
+                if(data['password'] != pwd):
+                    print("password wrong")
+                    connection.close()
+                    continue 
+                del data['password']
+                if check_hostname(data_list,data['mac']) == -1:
+                    data_list.append(data)
+                else:
+                    data_list[check_hostname(data_list,data['mac'])]=data
+                connection.close()
+        except:
             continue
-        data=json.loads(buf)
-        #print(data)
-        if(data['password'] != pwd):
-            print("password wrong")
-            connection.close()
-            continue 
-        del data['password']
-        if check_hostname(data_list,data['hostname']) == 9999999:
-            data_list.append(data)
-        else:
-            data_list[check_hostname(data_list,data['hostname'])]=data
-        #connection.close()
