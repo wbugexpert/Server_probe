@@ -1,6 +1,7 @@
 #! /bin/python3
 import os
 import sys
+print(__file__)
 def check():
     try:
         import psutil
@@ -215,4 +216,4 @@ if __name__=="__main__":
             sock.close()
         except:
             sock.close()
-            sys.exit()
+            print("发送数据不成功")
