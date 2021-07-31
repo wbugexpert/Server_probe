@@ -75,8 +75,6 @@ def get_network_ip(ipv4,ipv6):
     finally:
         if len(ipv4)==0:
             ipv4.append("error")
-            
-
     return  0
 
 def str_cnt(str1,str2):
@@ -197,17 +195,21 @@ def func():
     return data
 
 
-if __name__=="__main__":    
+if __name__=="__main__": 
     get_opt()
+    print("客户端开始工作")
+    print("服务器地址：",server_address,"服务器端口:",server_port)
+    print("密码：",pwd)
     while True:
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((server_address, int(server_port)))
             src_data=func()
             src_data['password']=pwd
             data=json.dumps(src_data)
             if not data:
                 continue
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((server_address, int(server_port)))
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
             sock.send(data.encode()) 
             print ('send to server with value: ',data)
             sock.close()
