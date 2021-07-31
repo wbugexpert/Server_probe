@@ -57,7 +57,7 @@ class Resquest(BaseHTTPRequestHandler):
         now_time=time.time()
         for i in range(0,len(data_list)):
             sent_time=(int)(data_list[i]['sys_time'])
-            if now_time-sent_time>3:
+            if now_time-sent_time>10:
                 data_list[i]['status']="offline"
             else:
                 data_list[i]['status']="online"
