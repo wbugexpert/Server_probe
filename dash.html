@@ -50,7 +50,7 @@
     function getStatus() {
       var expandElementIds = getExpandElement();
       var contentHtml = '';
-      $.get('./status.json', data => {
+      $.get('./status.json?' + window.location.search.substring(1), data => {
         for (var key in data) {
           var cpuUsageStatus = (data[key].cpu_percent > 40)?((data[key].cpu_percent > 80)?'danger':'warning'):'success'
           var memoryUsageStatus = (data[key].memory_percent > 40)?((data[key].memory_percent > 80)?'danger':'warning'):'success'
