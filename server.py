@@ -90,6 +90,7 @@ if __name__=="__main__":
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #创建套接字   
         sock.bind(('0.0.0.0', int(msg_port)))  #配置soket，绑定IP地址和端口号  
         sock.listen(100) #设置最大允许连接数，各连接和server的通信遵循FIFO原则
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
     except:
         print("配置接收信息端口失败，请检查端口"+msg_port+"是否被占用！")
         sys.exit()
@@ -104,7 +105,7 @@ if __name__=="__main__":
         eventlet.monkey_patch()
         try: 
             with eventlet.Timeout(1, True):
-                buf = connection.recv(1024*1024).decode()
+                buf = connection.recv(1024).decode()
                 if not buf:
                     continue
                 data=json.loads(buf)
