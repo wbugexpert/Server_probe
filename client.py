@@ -1,7 +1,6 @@
 #! /bin/python3
 import os
 import sys
-print(__file__)
 def check():
     try:
         import psutil
@@ -57,7 +56,37 @@ def get_opt():
             print(sys.argv[0]+" -p=<password> -a=<sever_address> -m=<server_port(=8000)>")
             print("Please note that there is no space between the equal sign and the parameter")
             sys.exit()
-
+def calbyte(num):
+    unit=['B','KB','MB','GB','TB','PB','EB','ZB','YB']
+    cnt=0
+    while num >= 1024:
+        num/=1024
+        cnt+=1
+    return [round(num,2),unit[cnt]]
+def str_cnt(str1,str2):
+    pos=0
+    cnt=-1
+    while(pos != -1):
+        pos=str1.find(str2,pos+1,len(str1))
+        cnt+=1
+    return cnt
+def caltime(sys_time,boot_time):
+    tmp=sys_time-boot_time
+    day=int(tmp/60/60/24)
+    tmp-=60*60*24*day
+    hr=int(tmp/60/60)
+    tmp-=60*60*hr
+    min=int(tmp/60)
+    sec=int(tmp)-60*min
+    time_list=[day,hr,min,sec]
+    if time_list[0]!=0:
+        return str(time_list[0])+"天"+str(time_list[1])+"时"
+    elif time_list[1]!=0:
+        return str(time_list[1])+"时"+str(time_list[2])+"分"
+    elif time_list[2]!=0:
+        return str(time_list[2])+"分"+str(time_list[3])+"秒"
+    else:
+        return str(time_list[3])+"秒" 
 
 def get_network_ip(ipv4,ipv6):
     try:
@@ -77,15 +106,6 @@ def get_network_ip(ipv4,ipv6):
         if len(ipv4)==0:
             ipv4.append("error")
     return  0
-
-def str_cnt(str1,str2):
-    pos=0
-    cnt=-1
-    while(pos != -1):
-        pos=str1.find(str2,pos+1,len(str1))
-        cnt+=1
-    return cnt
-
 def get_tcp_connection(tcp,tcp_stat):
     tmp=os.popen('netstat -nat').read()
     for i in range (0,len(tcp_stat)):
@@ -94,33 +114,16 @@ def get_udp_connection():
     tmp=os.popen('netstat -nau').read()
     udp=str_cnt(tmp,"udp")
     return udp
+def get_disk_usage():
+    disk_total=0
+    disk_used=0
+    devs = psutil.disk_partitions()
+    for dev in devs:
+        disk_total+=psutil.disk_usage('%s'%dev.mountpoint)[0]
+        disk_used+=psutil.disk_usage('%s'%dev.mountpoint)[1]
+    return [str(calbyte(disk_total)[0])+calbyte(disk_total)[1],str(calbyte(disk_used)[0])+calbyte(disk_used)[1]]
 
 
-def calbyte(num):
-    unit=['B','KB','MB','GB','TB','PB','EB','ZB','YB']
-    cnt=0
-    while num >= 1024:
-        num/=1024
-        cnt+=1
-    return [round(num,2),unit[cnt]]
-
-def caltime(sys_time,boot_time):
-    tmp=sys_time-boot_time
-    day=int(tmp/60/60/24)
-    tmp-=60*60*24*day
-    hr=int(tmp/60/60)
-    tmp-=60*60*hr
-    min=int(tmp/60)
-    sec=int(tmp)-60*min
-    time_list=[day,hr,min,sec]
-    if time_list[0]!=0:
-        return str(time_list[0])+"天"+str(time_list[1])+"时"
-    elif time_list[1]!=0:
-        return str(time_list[1])+"时"+str(time_list[2])+"分"
-    elif time_list[2]!=0:
-        return str(time_list[2])+"分"+str(time_list[3])+"秒"
-    else:
-        return str(time_list[3])+"秒" 
 
 def func():
     data={}
@@ -155,11 +158,11 @@ def func():
         data['swap_percent']=str(round(swap_used/swap_total*100,2))
     except:
         data['swap_percent']="error"
-    disk_usage_list=psutil.disk_usage('/')
+    disk_usage_list=get_disk_usage()
     disk_total=disk_usage_list[0]
     disk_used=disk_usage_list[1]
-    data['disk_total']=str(calbyte(disk_total)[0])+calbyte(disk_total)[1]
-    data['disk_used']=str(calbyte(disk_used)[0])+calbyte(disk_used)[1]
+    data['disk_total']=disk_total
+    data['disk_used']=disk_used
     try:    
         data['disk_percent']=str(round(disk_used/disk_total*100,2))
     except:
@@ -216,8 +219,8 @@ if __name__=="__main__":
             sock.close()
         except KeyboardInterrupt:
             raise
-        except sock.error:
-            print("数据发送不成功...")
+        except socket.error:
+            print("数据发送不成功，三秒后重试...")
             time.sleep(3)
         except Exception as e:
             print("Caught Exception:", e)
