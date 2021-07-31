@@ -122,5 +122,10 @@ if __name__=="__main__":
                 else:
                     data_list[check_hostname(data_list,data['mac'])]=data
                 connection.close()
-        except:
-            continue
+        except KeyboardInterrupt:
+            raise
+        except sock.error:
+            print("数据处理失败...")
+            time.sleep(3)
+        except Exception as e:
+            print("Caught Exception:", e)
