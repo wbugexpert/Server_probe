@@ -67,7 +67,7 @@
           var template = `
             <tr id="r${key}" data-toggle="collapse" data-target="#server_r${key}" class="accordion-toggle even"> \ 
               <td id="server${key}_name">${data[key].hostname}</td> \ 
-              <td id="server${key}_uptime">${data[key].run_time}</td> \ 
+              <td id="server${key}_uptime">${(data[key].status==='online')?(data[key].run_time):'<span style="color: red;">离线</span>'}</td> \ 
               <td id="server${key}_network">${data[key].net_recv_speed} | ${data[key].net_sent_speed}</td> \ 
               <td id="server${key}_traffic">${data[key].net_recv} | ${data[key].net_sent}</td> \ 
               <td id="server${key}_cpu"> \ 
