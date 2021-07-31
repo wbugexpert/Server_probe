@@ -95,7 +95,7 @@
                   <div id="server${key}_expand_mem">内存: ${data[key].memory_used} / ${data[key].memory_total}</div> \ 
                   <div id="server${key}_expand_swap">交换分区: ${data[key].swap_used} / ${data[key].swap_total}</div> \ 
                   <div id="server${key}_expand_hdd">硬盘: ${data[key].disk_used} / ${data[key].disk_total}</div> \ 
-                  <div id="server${key}_expand_tupd">连接数 / TCP / UDP: ${(data[key].tcp_total + data[key].udp_total)} / ${data[key].tcp_total} / ${data[key].udp_total}</div> \ 
+                  <div id="server${key}_expand_tupd">连接数 / TCP / UDP: ${(parseInt(data[key].tcp_total) + parseInt(data[key].udp_total))} / ${data[key].tcp_total} / ${data[key].udp_total}</div> \ 
                   <div id="server${key}_expand_tcp">TCP ESTABLISHED / TIME_WAIT: ${data[key].tcp_stat.ESTABLISHED} / ${data[key].tcp_stat.TIME_WAIT}</div> \ 
                   <div id="server${key}_expand_custom"></div> \ 
                 </div> \ 
