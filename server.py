@@ -1,0 +1,100 @@
+#! /bin/python3
+import socket
+import time
+import os
+import json
+import sys
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
+
+pwd=""
+msg_port=""
+web_port=""
+def get_opt():
+    try:
+        global pwd,msg_port,web_port
+        for i in range(1,len(sys.argv)):
+            if sys.argv[i].find("-w=",0,3)!=-1:
+                web_port=sys.argv[i][3:len(sys.argv[i])]
+            elif sys.argv[i].find("-m=",0,3)!=-1:
+                msg_port=sys.argv[i][3:len(sys.argv[i])]
+            elif sys.argv[i].find("-p=",0,3)!=-1:
+                pwd=sys.argv[i][3:len(sys.argv[i])]
+    finally:
+        if web_port == "" or pwd == "" or msg_port=="":
+            print(sys.argv[0]+" -p=<password> -w=<web_port> -m=<message_port>")
+            print("Please note that there is no space between the equal sign and the parameter")
+            sys.exit()
+
+data_list=[]
+
+class Resquest(BaseHTTPRequestHandler):
+  
+    def do_GET(self):
+        full_path = os.getcwd() + "/dash.html"
+        if self.path!='/status.json':
+            page=open(full_path,"rb").read()
+            self.send_response(200)
+            self.send_header("Content-type", "text/html")
+            self.send_header("Content-Length", str(len(page)))
+            self.end_headers()
+            self.wfile.write(page)
+        else:
+            page = self.create_page()
+            self.send_content(page.encode())
+    
+    Page = '''\
+        {content}
+    '''
+    def create_page(self):
+        now_time=time.time()
+        for i in range(0,len(data_list)):
+            sent_time=(int)(data_list[i]['sys_time'])
+            if now_time-sent_time>3:
+                data_list[i]['status']="offline"
+            else:
+                data_list[i]['status']="online"
+        string=json.dumps(data_list)
+        values = {'content':string}
+        page = self.Page.format(**values)
+        return page
+    def send_content(self, page):
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.send_header("Content-Length", str(len(page)))
+        self.end_headers()
+        self.wfile.write(page)
+
+def check_hostname(list,tag):
+    for i in range(0,len(list)):
+        if tag == list[i]['hostname']:
+            return i
+    return 9999999
+
+def web_server():
+    server = HTTPServer(('',int(web_port)), Resquest)
+    server.serve_forever()
+
+if __name__=="__main__":
+    get_opt()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #创建套接字   
+    sock.bind(('0.0.0.0', int(msg_port)))  #配置soket，绑定IP地址和端口号  
+    sock.listen(100) #设置最大允许连接数，各连接和server的通信遵循FIFO原则    
+    threading.Thread(target=web_server).start() 
+    while True:
+        connection,address = sock.accept()
+        buf = connection.recv(1024*1024).decode()
+        if not buf:
+            continue
+        data=json.loads(buf)
+        #print(data)
+        if(data['password'] != pwd):
+            print("password wrong")
+            connection.close()
+            continue 
+        del data['password']
+        if check_hostname(data_list,data['hostname']) == 9999999:
+            data_list.append(data)
+        else:
+            data_list[check_hostname(data_list,data['hostname'])]=data
+        #connection.close()
