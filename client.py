@@ -112,7 +112,7 @@ def caltime(sys_time,boot_time):
     hr=(int)(tmp/60/60)
     tmp-=60*60*hr
     min=(int)(tmp/60)
-    sec=tmp-60*min
+    sec=(int)tmp-60*min
     time_list=[day,hr,min,sec]
     if time_list[0]!=0:
         return str(time_list[0])+"天"+str(time_list[1])+"时"
