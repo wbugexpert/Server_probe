@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>监控</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+  <style>
+    body {
+      padding: 30px;
+    }
+    .expandRow {
+      text-align: center;
+    }
+    .expandRow > td {
+      padding: 0 !important;
+      border-top: 0px !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container content">
+    <table class="table table-striped table-condensed table-hover">
+      <thead>
+        <tr>
+          <th>主机名</th>
+          <th>在线时间</th>
+          <th>网络 ↓|↑</th>
+          <th>流量 ↓|↑</th>
+          <th>处理器</th>
+          <th>内存</th>
+          <th>硬盘</th>
+        </tr>
+      </thead>
+      <tbody id="servers">
+      </tbody>
+    </table>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"
+    integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+    integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+    crossorigin="anonymous"></script>
+  <script>
+    function getStatus() {
+      var contentHtml = '';
+      $.get('./status.json', data => {
+        for (var key in data) {
+          var cpuUsageStatus = (data[key].cpu_percent > 40)?((data[key].cpu_percent > 80)?'danger':'warning'):'success'
+          var memoryUsageStatus = (data[key].memory_percent > 40)?((data[key].memory_percent > 80)?'danger':'warning'):'success'
+          var diskUsageStatus = (data[key].disk_percent > 40)?((data[key].disk_percent > 80)?'danger':'warning'):'success'
+          var cpuInfo = '';
+          for (var k in data[key].cpu_logical_percent_list) {
+            if (k < (data[key].cpu_logical_percent_list.length - 1)) {
+              cpuInfo += data[key].cpu_logical_percent_list[k] + ' / ';
+            } else {
+              cpuInfo += data[key].cpu_logical_percent_list[k]
+            }
+          }
+          var ipv6Info = (data[key].ipv6!=='error')?'<div id="expand_ipv6">IPv6地址：' + data[key].ipv6 + '</div>':'';
+          var template = `
+            <tr data-toggle="collapse" data-target="#server_${key}" class="accordion-toggle even"> \ 
+              <td id="name">${data[key].hostname}</td> \ 
+              <td id="uptime">${data[key].run_time}</td> \ 
+              <td id="network">${data[key].net_recv_speed} | ${data[key].net_sent_speed}</td> \ 
+              <td id="traffic">${data[key].net_recv} | ${data[key].net_sent}</td> \ 
+              <td id="cpu"> \ 
+                <div class="progress"> \ 
+                  <div style="width: ${data[key].cpu_percent}%;" class="progress-bar progress-bar-${cpuUsageStatus}">${data[key].cpu_percent}%</div> \ 
+                </div> \ 
+              </td> \ 
+              <td id="memory"> \ 
+                <div class="progress"> \ 
+                  <div style="width: ${data[key].memory_percent}%;" class="progress-bar progress-bar-${memoryUsageStatus}">${data[key].memory_percent}%</div> \ 
+                </div> \ 
+              </td> \ 
+              <td id="hdd"> \ 
+                <div class="progress"> \ 
+                  <div style="width: ${data[key].disk_percent}%;" class="progress-bar progress-bar-${diskUsageStatus}">${data[key].disk_percent}%</div> \ 
+                </div> \ 
+              </td> \ 
+            </tr> \ 
+            <tr class="expandRow even"> \ 
+              <td colspan="16"> \ 
+                <div class="accordian-body collapse" id="server_${key}"> \ 
+                  <div id="expand_ipv4">IPv4地址：${data[key].ipv4}</div> \ 
+                  ${ipv6Info} \ 
+                  <div id="expand_cpu">CPU使用情况: ${cpuInfo}</div> \ 
+                  <div id="expand_mem">内存: ${data[key].memory_used} / ${data[key].memory_total}</div> \ 
+                  <div id="expand_swap">交换分区: ${data[key].swap_used} / ${data[key].swap_total}</div> \ 
+                  <div id="expand_hdd">硬盘: ${data[key].disk_used} / ${data[key].disk_total}</div> \ 
+                  <div id="expand_tupd">连接数 / TCP / UDP: ${(data[key].tcp_total + data[key].udp_total)} / ${data[key].tcp_total} / ${data[key].udp_total}</div> \ 
+                  <div id="expand_tcp">TCP ESTABLISHED / TIME_WAIT: ${data[key].tcp_stat.ESTABLISHED} / ${data[key].tcp_stat.TIME_WAIT}</div> \ 
+                  <div id="expand_custom"></div> \ 
+                </div> \ 
+              </td> \ 
+            </tr>
+          `;
+          contentHtml += template;
+        }
+        $('#servers').html(contentHtml);
+      })
+    }
+    getStatus();
+    setInterval(getStatus, 1000);
+  </script>
+</body>
+
+</html>
