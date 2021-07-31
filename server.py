@@ -37,7 +37,7 @@ data_list=[]
 class Resquest(BaseHTTPRequestHandler):
   
     def do_GET(self):
-        full_path = os.getcwd() + "/dash.html"
+        full_path = os.path.split(os.path.realpath(__file__))[0] + "/dash.html"
         #self.send_header("Access-Control-Allow-Origin", "*")
         if self.path!='/status.json?'+pwd:
             page=open(full_path,"rb").read()
