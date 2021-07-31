@@ -107,12 +107,12 @@ def calbyte(num):
 
 def caltime(sys_time,boot_time):
     tmp=sys_time-boot_time
-    day=(int)(tmp/60/60/24)
+    day=int(tmp/60/60/24)
     tmp-=60*60*24*day
-    hr=(int)(tmp/60/60)
+    hr=int(tmp/60/60)
     tmp-=60*60*hr
-    min=(int)(tmp/60)
-    sec=(int)tmp-60*min
+    min=int(tmp/60)
+    sec=int(tmp)-60*min
     time_list=[day,hr,min,sec]
     if time_list[0]!=0:
         return str(time_list[0])+"天"+str(time_list[1])+"时"
