@@ -63,7 +63,7 @@
               cpuInfo += data[key].cpu_logical_percent_list[k]
             }
           }
-          var ipv6Info = (data[key].ipv6!=='error')?'<div id="server${key}_expand_ipv6">IPv6地址：' + data[key].ipv6 + '</div>':'';
+          var ipv6Info = (data[key].ipv6[0]!=='error')?'<div id="server${key}_expand_ipv6">IPv6地址：' + data[key].ipv6 + '</div>':'';
           var template = `
             <tr id="r${key}" data-toggle="collapse" data-target="#server_r${key}" class="accordion-toggle even"> \ 
               <td id="server${key}_name">${data[key].hostname}</td> \ 
