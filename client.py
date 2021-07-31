@@ -121,7 +121,11 @@ def get_disk_usage():
     for dev in devs:
         disk_total+=psutil.disk_usage('%s'%dev.mountpoint)[0]
         disk_used+=psutil.disk_usage('%s'%dev.mountpoint)[1]
-    return [str(calbyte(disk_total)[0])+calbyte(disk_total)[1],str(calbyte(disk_used)[0])+calbyte(disk_used)[1]]
+    try:
+        disk_percent=round(disk_used/disk_total*100,2)
+    except:
+        disk_percent="error"
+    return [str(calbyte(disk_total)[0])+calbyte(disk_total)[1],str(calbyte(disk_used)[0])+calbyte(disk_used)[1],str(disk_percent)]
 
 
 
@@ -161,12 +165,10 @@ def func():
     disk_usage_list=get_disk_usage()
     disk_total=disk_usage_list[0]
     disk_used=disk_usage_list[1]
+    disk_percent=disk_usage_list[2]
     data['disk_total']=disk_total
     data['disk_used']=disk_used
-    try:    
-        data['disk_percent']=str(round(disk_used/disk_total*100,2))
-    except:
-        data['disk_percent']="error"
+    data['disk_percent']=disk_percent
     net_pre_list=psutil.net_io_counters()
     time.sleep(1)
     net_list=psutil.net_io_counters()
