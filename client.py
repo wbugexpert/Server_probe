@@ -216,7 +216,7 @@ if __name__=="__main__":
             sock.close()
         except KeyboardInterrupt:
             raise
-        except socket.error:
+        except sock.error:
             print("数据发送不成功...")
             time.sleep(3)
         except Exception as e:
