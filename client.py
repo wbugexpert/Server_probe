@@ -38,20 +38,22 @@ import time
 
 server_address=""
 pwd=""
-web_port=""
+server_port=""
 def get_opt():
     try:
-        global server_address,pwd,web_port
+        global server_address,pwd,server_port
         for i in range(1,len(sys.argv)):
             if sys.argv[i].find("-a=",0,3)!=-1:
                 server_address=sys.argv[i][3:len(sys.argv[i])]
             elif sys.argv[i].find("-p=",0,3)!=-1:
                 pwd=sys.argv[i][3:len(sys.argv[i])]
-            elif sys.argv[i].find("-w=",0,3)!=-1:
-                web_port=sys.argv[i][3:len(sys.argv[i])]
+            elif sys.argv[i].find("-m=",0,3)!=-1:
+                server_port=sys.argv[i][3:len(sys.argv[i])]
     finally:
-        if server_address == "" or pwd == "" or web_port == "":
-            print(sys.argv[0]+" -p=<password> -a=<sever_address> -w<web_port>")
+        if server_port=="":
+            server_port="8000"
+        if server_address == "" or pwd == "":
+            print(sys.argv[0]+" -p=<password> -a=<sever_address> -m=<server_port(=8000)>")
             print("Please note that there is no space between the equal sign and the parameter")
             sys.exit()
 
@@ -164,14 +166,14 @@ def func():
     except:
         data['disk_percent']="error"
     net_pre_list=psutil.net_io_counters()
-    time.sleep(0.5)
+    time.sleep(1)
     net_list=psutil.net_io_counters()
     net_pre_sent=net_pre_list[0]
     net_pre_recv=net_pre_list[1]
     net_sent=net_list[0]
     net_recv=net_list[1]
-    net_sent_speed=(net_sent-net_pre_sent)*2
-    net_recv_speed=(net_recv-net_pre_recv)*2
+    net_sent_speed=(net_sent-net_pre_sent)
+    net_recv_speed=(net_recv-net_pre_recv)
     data['net_sent_speed']=str(calbyte(net_sent_speed)[0])+calbyte(net_sent_speed)[1]+"/s"
     data['net_recv_speed']=str(calbyte(net_recv_speed)[0])+calbyte(net_recv_speed)[1]+"/s"
     data['net_sent']=str(calbyte(net_sent)[0])+calbyte(net_sent)[1]
@@ -200,7 +202,7 @@ if __name__=="__main__":
     while True:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((server_address, int(web_port)))
+            sock.connect((server_address, int(server_port)))
             src_data=func()
             src_data['password']=pwd
             data=json.dumps(src_data)
