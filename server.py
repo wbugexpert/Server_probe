@@ -23,8 +23,12 @@ def get_opt():
             elif sys.argv[i].find("-p=",0,3)!=-1:
                 pwd=sys.argv[i][3:len(sys.argv[i])]
     finally:
-        if web_port == "" or pwd == "" or msg_port=="":
-            print(sys.argv[0]+" -p=<password> -w=<web_port> -m=<message_port>")
+        if web_port == "" :
+            web_port="8001"
+        if msg_port=="":
+            msg_port="8000"
+        if pwd == "":
+            print(sys.argv[0]+" -p=<password> -w=<web_port(=8001)> -m=<message_port(=8000)>")
             print("Please note that there is no space between the equal sign and the parameter")
             sys.exit()
 
@@ -80,11 +84,21 @@ def web_server():
 
 if __name__=="__main__":
     get_opt()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #创建套接字   
-    sock.bind(('0.0.0.0', int(msg_port)))  #配置soket，绑定IP地址和端口号  
-    sock.listen(100) #设置最大允许连接数，各连接和server的通信遵循FIFO原则    
-    threading.Thread(target=web_server).start() 
-    print("服务端")
+    print("网页端口：",web_port,"接收信息端口：",msg_port)
+    print("密码：",pwd)
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #创建套接字   
+        sock.bind(('0.0.0.0', int(msg_port)))  #配置soket，绑定IP地址和端口号  
+        sock.listen(100) #设置最大允许连接数，各连接和server的通信遵循FIFO原则
+    except:
+        print("配置接收信息端口失败，请检查端口"+msg_port+"是否被占用！")
+        sys.exit()
+    try:    
+        threading.Thread(target=web_server).start() 
+    except:
+        print("配置网页端口失败，请检查端口"+web_port+"是否被占用！")
+        sys.exit()
+    print("服务端开始工作：")
     while True:
         connection,address = sock.accept()
         eventlet.monkey_patch()
