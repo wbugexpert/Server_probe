@@ -34,6 +34,7 @@
           <th>CPU</th>
           <th>内存</th>
           <th>硬盘</th>
+          <th>延迟 / 丢包率</th>
         </tr>
       </thead>
       <tbody id="servers">
@@ -84,7 +85,8 @@
                 <div class="progress"> \ 
                   <div style="width: ${data[key].disk_percent}%;color: #337ab7 !important;" class="progress-bar progress-bar-${diskUsageStatus}">${data[key].disk_percent}%</div> \ 
                 </div> \ 
-              </td> \ 
+              </td> \
+              <td id="server${key}_netstat">${data[key].delay} ms | ${data[key].Pocketlossrate}</td> \ 
             </tr> \ 
             <tr class="expandRow even"> \ 
               <td colspan="16"> \ 
