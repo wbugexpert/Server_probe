@@ -68,8 +68,8 @@ def get_opt():
 def calbyte(num):
     unit=['B','KB','MB','GB','TB','PB','EB','ZB','YB']
     cnt=0
-    while num >= 1024:
-        num/=1024
+    while num >= 1000:
+        num/=1000
         cnt+=1
     return [round(num,2),unit[cnt]]
 def str_cnt(str1,str2):
@@ -144,7 +144,7 @@ def get_delay():
         delay_flag=re.compile(r'.*/(.*)/.*/.*')
         Pocketlossrate_flag=re.compile(r' ([0-9]*\.*[0-9]*%) ')
         try:
-            delay=re.search(delay_flag,tmp).group(1)            
+            delay=str(int(float(re.search(delay_flag,tmp).group(1))))        
         except:
             delay="error"
         try:
