@@ -140,15 +140,15 @@ def get_delay():
     while True:
         if status==1:
             return
-        tmp=os.popen("ping 114.114.114.114 -c 50 -i 0.2 -w 10").read()
+        tmp=os.popen("ping 183.3.226.35 -c 50 -i 0.2 -w 10").read()
         delay_flag=re.compile(r'.*/(.*)/.*/.*')
-        Pocketlossrate_flag=re.compile(r' ([0-9]*\.*[0-9]*%) ')
+        Pocketlossrate_flag=re.compile(r' ([0-9]*\.*[0-9]*)% ')
         try:
             delay=str(int(float(re.search(delay_flag,tmp).group(1))))        
         except:
             delay="error"
         try:
-            Pocketlossrate=re.search(Pocketlossrate_flag,tmp).group(1)
+            Pocketlossrate=str(int(float(re.search(Pocketlossrate_flag,tmp).group(1))))+" %"
         except:
             Pocketlossrate="error"
 def get_cpuinfo():
