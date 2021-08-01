@@ -6,29 +6,34 @@ def check():
         import psutil
     except:
         os.system('pip install psutil')
-        os.execv(__file__, sys.argv)
     try:
         import socket
     except:
         os.system('pip install socket')
-        os.execv(__file__, sys.argv)
     try:
         import re
     except:
         os.system('pip install re')
-        os.execv(__file__, sys.argv)
     try:
         import time
     except:
         os.system('pip install time')
-        os.execv(__file__, sys.argv)
     try:
         import json
     except:
         os.system('pip install json')
-        os.execv(__file__, sys.argv)
+    try:
+        import threading
+    except:
+        os.system('pip install threading')
+    try:
+        import psutil,socket,re,time,json,threading
+    except:
+        print("安装缺失的库函数失败，请重启脚本重试。如果依然出现此提示，请检查网络连接和pip库。")
+        sys.exit()
 
 check()
+import threading
 import json
 import psutil
 import socket
@@ -39,6 +44,10 @@ import time
 server_address=""
 pwd=""
 server_port=""
+delay="error"
+Pocketlossrate="error"
+status=0
+
 def get_opt():
     try:
         global server_address,pwd,server_port
@@ -126,6 +135,60 @@ def get_disk_usage():
     except:
         disk_percent="error"
     return [str(calbyte(disk_total)[0])+calbyte(disk_total)[1],str(calbyte(disk_used)[0])+calbyte(disk_used)[1],str(disk_percent)]
+def get_delay():
+    global delay,Pocketlossrate
+    while True:
+        if status==1:
+            return
+        tmp=os.popen("ping 114.114.114.114 -c 50 -i 0.2 -w 10").read()
+        delay_flag=re.compile(r'.*/(.*)/.*/.*')
+        Pocketlossrate_flag=re.compile(r' ([0-9]*\.*[0-9]*%) ')
+        try:
+            delay=re.search(delay_flag,tmp).group(1)            
+        except:
+            delay="error"
+        try:
+            Pocketlossrate=re.search(Pocketlossrate_flag,tmp).group(1)
+        except:
+            Pocketlossrate="error"
+def get_cpuinfo():
+    total_tmp=0
+    for i in range(0,3):
+        total_tmp+=psutil.cpu_percent(interval=0.1,percpu=False)
+    cpu_percent=round(total_tmp/3,2)
+    cpu_cnt=psutil.cpu_count(logical=True)
+    cpu_logical_percent_list1=psutil.cpu_percent(interval=0.1,percpu=True)
+    cpu_logical_percent_list2=psutil.cpu_percent(interval=0.1,percpu=True)
+    cpu_logical_percent_list3=psutil.cpu_percent(interval=0.1,percpu=True)
+    cpu_logical_percent_list=[]
+    for i in range(0,cpu_cnt):
+        cpu_logical_percent_list.append(round((cpu_logical_percent_list1[i]+cpu_logical_percent_list2[i]+cpu_logical_percent_list3[i])/3,2))
+    return [cpu_percent,cpu_logical_percent_list]
+
+
+
+def get_netflow():
+    tmp=os.popen("ifconfig |grep 'TX packets'|awk '{print $5}'").read()
+    flag=re.compile(r'.*')
+    TX_list=flag.findall(tmp)
+    tmp=os.popen("ifconfig |grep 'RX packets'|awk '{print $5}'").read()
+    flag=re.compile(r'.*')
+    RX_list=flag.findall(tmp)
+    try:
+        TX=0
+        for num in TX_list:
+            if num!='':
+                TX+=int(num)
+    except:
+        TX="error"
+    try:
+        RX=0
+        for num in RX_list:
+            if num!='':
+                RX+=int(num)
+    except:
+        RX="error"
+    return [TX,RX]
 
 
 
@@ -133,17 +196,15 @@ def func():
     data={}
     hostname=socket.gethostname()
     data['hostname']=hostname
+    data['mac']=os.popen("ifconfig|grep ether|awk '{print $2}'").readline()
     boot_time=psutil.boot_time()
     sys_time=time.time()
     run_time=caltime(sys_time,boot_time)
     data['run_time']=run_time
     data['sys_time']=sys_time
-    cpu_percent=psutil.cpu_percent(interval=0.1,percpu=False)
-    cpu_cnt=psutil.cpu_count(logical=True)
-    cpu_logical_percent_list=psutil.cpu_percent(interval=0.1,percpu=True)
-    data['cpu_percent']=str(cpu_percent)
-    data['cpu_cnt']=str(cpu_cnt)
-    data['cpu_logical_percent_list']=cpu_logical_percent_list
+    cpu_info=get_cpuinfo()
+    data['cpu_percent']=cpu_info[0]
+    data['cpu_logical_percent_list']=cpu_info[1]
     vir_memory_list=psutil.virtual_memory()
     vir_total=vir_memory_list[0]
     vir_used=vir_memory_list[0]-vir_memory_list[1]
@@ -169,19 +230,6 @@ def func():
     data['disk_total']=disk_total
     data['disk_used']=disk_used
     data['disk_percent']=disk_percent
-    net_pre_list=psutil.net_io_counters()
-    time.sleep(1)
-    net_list=psutil.net_io_counters()
-    net_pre_sent=net_pre_list[0]
-    net_pre_recv=net_pre_list[1]
-    net_sent=net_list[0]
-    net_recv=net_list[1]
-    net_sent_speed=(net_sent-net_pre_sent)
-    net_recv_speed=(net_recv-net_pre_recv)
-    data['net_sent_speed']=str(calbyte(net_sent_speed)[0])+calbyte(net_sent_speed)[1]+"/s"
-    data['net_recv_speed']=str(calbyte(net_recv_speed)[0])+calbyte(net_recv_speed)[1]+"/s"
-    data['net_sent']=str(calbyte(net_sent)[0])+calbyte(net_sent)[1]
-    data['net_recv']=str(calbyte(net_recv)[0])+calbyte(net_recv)[1]
     ipv4=[]
     ipv6=[]
     get_network_ip(ipv4,ipv6)
@@ -196,8 +244,32 @@ def func():
         tcp_dict[tcp_stat[i]]=tcp[i]
     data['tcp_stat']=tcp_dict
     udp=get_udp_connection()
-    data['udp_total']=str(udp)
-    data['mac']=os.popen("ifconfig|grep ether|awk '{print $2}'").readline()
+    data['udp_total']=str(udp)    
+    net_pre_list=get_netflow()
+    time.sleep(0.4)
+    net_list=get_netflow()
+    net_pre_sent=net_pre_list[0]
+    net_pre_recv=net_pre_list[1]
+    net_sent=net_list[0]
+    net_recv=net_list[1]
+    try:
+        net_sent_speed=(net_sent-net_pre_sent)/0.4
+        net_recv_speed=(net_recv-net_pre_recv)/0.4
+        data['net_sent_speed']=str(calbyte(net_sent_speed)[0])+calbyte(net_sent_speed)[1]+"/s"
+        data['net_recv_speed']=str(calbyte(net_recv_speed)[0])+calbyte(net_recv_speed)[1]+"/s"
+    except:
+        data['net_sent_speed']="error"
+        data['net_recv_speed']="error"
+    if net_sent!="error":
+        data['net_sent']=str(calbyte(net_sent)[0])+calbyte(net_sent)[1]
+    else:
+        data['net_sent']==net_sent
+    if net_recv!="error":
+        data['net_recv']=str(calbyte(net_recv)[0])+calbyte(net_recv)[1]
+    else:
+        data['net_recv']=net_recv
+    data['delay']=delay 
+    data['Pocketlossrate']=Pocketlossrate    
     return data
 
 
@@ -206,7 +278,10 @@ if __name__=="__main__":
     print("客户端开始工作")
     print("服务器地址：",server_address,"服务器端口:",server_port)
     print("密码：",pwd)
+    threading.Thread(target=get_delay).start()
     while True:
+        if status==1:
+            sys.exit()
         try:
             src_data=func()
             src_data['password']=pwd
@@ -220,9 +295,11 @@ if __name__=="__main__":
             print ('send to server with value: ',data)
             sock.close()
         except KeyboardInterrupt:
-            raise
+            print("Caught Exception: KeyboardInterrupt")
+            status=1
         except socket.error:
             print("数据发送不成功，三秒后重试...")
             time.sleep(3)
         except Exception as e:
             print("Caught Exception:", e)
+            status=1
