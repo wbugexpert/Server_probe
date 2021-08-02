@@ -45,7 +45,7 @@ server_address=""
 pwd=""
 server_port=""
 delay="-"
-Pocketlossrate="-"
+Pocketlossrate="- %"
 status=0
 
 def get_opt():
@@ -196,7 +196,6 @@ def func():
     data={}
     hostname=socket.gethostname()
     data['hostname']=hostname
-    data['mac']=os.popen("ifconfig|grep ether|awk '{print $2}'").readline()
     boot_time=psutil.boot_time()
     sys_time=time.time()
     run_time=caltime(sys_time,boot_time)
@@ -233,6 +232,8 @@ def func():
     ipv4=[]
     ipv6=[]
     get_network_ip(ipv4,ipv6)
+    ipv4.sort()
+    ipv6.sort()
     data['ipv4']=ipv4
     data['ipv6']=ipv6
     tcp=[]
