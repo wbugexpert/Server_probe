@@ -44,8 +44,8 @@ import time
 server_address=""
 pwd=""
 server_port=""
-delay="error"
-Pocketlossrate="error"
+delay="-"
+Pocketlossrate="-"
 status=0
 
 def get_opt():
@@ -68,8 +68,8 @@ def get_opt():
 def calbyte(num):
     unit=['B','KB','MB','GB','TB','PB','EB','ZB','YB']
     cnt=0
-    while num >= 1000:
-        num/=1000
+    while num >= 1024:
+        num/=1024
         cnt+=1
     return [round(num,2),unit[cnt]]
 def str_cnt(str1,str2):
