@@ -72,9 +72,9 @@ class Resquest(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(page)
 
-def check_hostname(list,tag):
+def check_hostname(list,tag1,tag2):
     for i in range(0,len(list)):
-        if tag == list[i]['mac']:
+        if tag1 == list[i]['ipv4'] and tag2 == list[i]['ipv6']:
             return i
     return -1
 
@@ -117,15 +117,16 @@ if __name__=="__main__":
                     connection.close()
                     continue 
                 del data['password']
-                if check_hostname(data_list,data['mac']) == -1:
+                if check_hostname(data_list,data['ipv4'],data['ipv6']) == -1:
                     data_list.append(data)
                 else:
-                    data_list[check_hostname(data_list,data['mac'])]=data
+                    data_list[check_hostname(data_list,data['ipv4'],data['ipv6'])]=data
+                data_list.sort(key=lambda ele:ele['hostname'])
                 connection.close()
         except KeyboardInterrupt:
             raise
         except sock.error:
-            print("数据处理失败...")
+            print("数据处理失败，三秒后重试...")
             time.sleep(3)
         except Exception as e:
             print("Caught Exception:", e)
