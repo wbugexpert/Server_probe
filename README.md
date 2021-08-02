@@ -1,9 +1,14 @@
 # web_server
 ### 基于python3编写的一个服务器探针
+开发环境是ubuntu20.04 python3
+其他系统不一定适用
+
+### 配置信息
 
 服务器端配置：调用的库函数：socket,json,time,os,sys,psutil,http.server,threading,eventlet，需自行配置
 
 客户端已编写代码自动配置，需有os库和sys库，以及pip
+#### 请注意，客户端一定要有ifconfig工具
 
 网页端查看：服务端ip地址:服务端接收信息端口/?密码
 
