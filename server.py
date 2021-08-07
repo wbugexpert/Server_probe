@@ -121,12 +121,10 @@ if __name__=="__main__":
                     data_list.append(data)
                 else:
                     data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
-                data_list.sort(key=lambda ele:ele['hostname'])
+                data_list.sort(key=lambda ele:ele['hostname'].lower())
                 connection.close()
         except KeyboardInterrupt:
             raise
-        except sock.error:
-            print("数据处理失败，三秒后重试...")
-            time.sleep(3)
         except Exception as e:
-            print("Caught Exception:", e)
+            print("发生错误:%s，三秒后重试..."%e)
+            time.sleep(3)
