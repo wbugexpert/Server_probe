@@ -298,9 +298,6 @@ if __name__=="__main__":
         except KeyboardInterrupt:
             print("Caught Exception: KeyboardInterrupt")
             status=1
-        except socket.error:
-            print("数据发送不成功，三秒后重试...")
-            time.sleep(3)
         except Exception as e:
-            print("Caught Exception:", e)
-            status=1
+            print("发生错误:%s，三秒后重试..."%e)
+            time.sleep(3)
