@@ -104,7 +104,7 @@ if __name__=="__main__":
         connection,address = sock.accept()
         eventlet.monkey_patch()
         try: 
-            with eventlet.Timeout(1, True):
+            with eventlet.Timeout(1, False):
                 buf = connection.recv(1024).decode()
                 while buf[len(buf)-1]!="}":
                     buf+=connection.recv(1024).decode()
