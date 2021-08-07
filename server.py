@@ -117,7 +117,7 @@ if __name__=="__main__":
                     connection.close()
                     continue 
                 del data['password']
-                if check_hostname(data_list,data['ipv4'],data['ipv6']) == -1:
+                if check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname']) == -1:
                     data_list.append(data)
                 else:
                     data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
