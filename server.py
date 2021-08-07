@@ -72,9 +72,9 @@ class Resquest(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(page)
 
-def check_hostname(list,tag1,tag2):
+def check_hostname(list,ipv4_list,ipv6_list,hostname):
     for i in range(0,len(list)):
-        if tag1 == list[i]['ipv4'] and tag2 == list[i]['ipv6']:
+        if ipv4_list == list[i]['ipv4'] and ipv6_list == list[i]['ipv6'] and hostname==list[i]['hostname']:
             return i
     return -1
 
@@ -111,7 +111,7 @@ if __name__=="__main__":
                 if not buf:
                     continue
                 data=json.loads(buf)
-                print(data)
+                #print(data)
                 if(data['password'] != pwd):
                     print("password wrong")
                     connection.close()
@@ -120,7 +120,7 @@ if __name__=="__main__":
                 if check_hostname(data_list,data['ipv4'],data['ipv6']) == -1:
                     data_list.append(data)
                 else:
-                    data_list[check_hostname(data_list,data['ipv4'],data['ipv6'])]=data
+                    data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
                 data_list.sort(key=lambda ele:ele['hostname'])
                 connection.close()
         except KeyboardInterrupt:
