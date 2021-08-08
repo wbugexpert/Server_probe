@@ -82,6 +82,28 @@ def web_server():
     server = HTTPServer(('',int(web_port)), Resquest)
     server.serve_forever()
 
+def recv_msg(connection):
+    with eventlet.Timeout(1, False):
+        buf = connection.recv(1024).decode()
+        while buf[len(buf)-1]!="}":
+            buf+=connection.recv(1024).decode()
+        if not buf:
+            connection.close()
+            return
+        data=json.loads(buf)
+        #print(data)
+        if(data['password'] != pwd):
+            print("password wrong")
+            connection.close()
+            return
+        del data['password']
+        if check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname']) == -1:
+            data_list.append(data)
+        else:
+            data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
+        data_list.sort(key=lambda ele:ele['hostname'].lower())
+    connection.close()
+
 if __name__=="__main__":
     get_opt()
     print("网页端口：",web_port,"接收信息端口：",msg_port)
@@ -100,29 +122,13 @@ if __name__=="__main__":
         print("配置网页端口失败，请检查端口"+web_port+"是否被占用！")
         sys.exit()
     print("服务端开始工作：")
+    eventlet.monkey_patch()
     while True:
+        while threading.active_count()>6:
+            time.sleep(1)
         connection,address = sock.accept()
-        eventlet.monkey_patch()
         try: 
-            with eventlet.Timeout(1, False):
-                buf = connection.recv(1024).decode()
-                while buf[len(buf)-1]!="}":
-                    buf+=connection.recv(1024).decode()
-                if not buf:
-                    continue
-                data=json.loads(buf)
-                #print(data)
-                if(data['password'] != pwd):
-                    print("password wrong")
-                    connection.close()
-                    continue 
-                del data['password']
-                if check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname']) == -1:
-                    data_list.append(data)
-                else:
-                    data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
-                data_list.sort(key=lambda ele:ele['hostname'].lower())
-                connection.close()
+            threading.Thread(target=recv_msg,args=(connection,)).start()
         except KeyboardInterrupt:
             raise
         except Exception as e:
