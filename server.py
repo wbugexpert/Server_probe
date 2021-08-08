@@ -54,13 +54,20 @@ class Resquest(BaseHTTPRequestHandler):
         {content}
     '''
     def create_page(self):
+        global data_list
         now_time=time.time()
+        tmp_list=[]
         for i in range(0,len(data_list)):
             sent_time=(int)(data_list[i]['sys_time'])
-            if now_time-sent_time>10:
+            if now_time-sent_time>=600:
+                data_list[i]['status']="offline"
+                continue
+            elif now_time-sent_time>10:
                 data_list[i]['status']="offline"
             else:
                 data_list[i]['status']="online"
+            tmp_list.append(data_list[i])
+        data_list=tmp_list[:]
         string=json.dumps(data_list)
         values = {'content':string}
         page = self.Page.format(**values)
@@ -111,7 +118,7 @@ if __name__=="__main__":
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #创建套接字   
         sock.bind(('0.0.0.0', int(msg_port)))  #配置soket，绑定IP地址和端口号  
-        sock.listen(100) #设置最大允许连接数，各连接和server的通信遵循FIFO原则
+        sock.listen(128) #设置最大允许连接数，各连接和server的通信遵循FIFO原则
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
     except:
         print("配置接收信息端口失败，请检查端口"+msg_port+"是否被占用！")
