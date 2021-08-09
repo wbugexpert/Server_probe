@@ -59,7 +59,7 @@ class Resquest(BaseHTTPRequestHandler):
         tmp_list=[]
         for i in range(0,len(data_list)):
             sent_time=(int)(data_list[i]['sys_time'])
-            if now_time-sent_time>=600:
+            if now_time-sent_time>=1800:
                 data_list[i]['status']="offline"
                 continue
             elif now_time-sent_time>10:
