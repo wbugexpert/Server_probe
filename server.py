@@ -31,6 +31,7 @@ def get_opt():
             print(sys.argv[0]+" -p=<password> -w=<web_port(=8001)> -m=<message_port(=8000)>")
             print("Please note that there is no space between the equal sign and the parameter")
             sys.exit()
+    return
 
 data_list=[]
 
@@ -110,6 +111,7 @@ def recv_msg(connection):
             data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
         data_list.sort(key=lambda ele:ele['hostname'].lower())
     connection.close()
+    return
 
 if __name__=="__main__":
     get_opt()
