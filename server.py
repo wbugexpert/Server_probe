@@ -92,24 +92,27 @@ def web_server():
 
 def recv_msg(connection):
     with eventlet.Timeout(1, False):
-        buf = connection.recv(1024).decode()
-        while buf[len(buf)-1]!="}":
-            buf+=connection.recv(1024).decode()
-        if not buf:
-            connection.close()
-            return
-        data=json.loads(buf)
-        #print(data)
-        if(data['password'] != pwd):
-            print("password wrong")
-            connection.close()
-            return
-        del data['password']
-        if check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname']) == -1:
-            data_list.append(data)
-        else:
-            data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
-        data_list.sort(key=lambda ele:ele['hostname'].lower())
+        try:
+            buf = connection.recv(1024).decode()
+            while buf[len(buf)-1]!="}":
+                buf+=connection.recv(1024).decode()
+            if not buf:
+                connection.close()
+                return
+            data=json.loads(buf)
+            #print(data)
+            if(data['password'] != pwd):
+                print("password wrong")
+                connection.close()
+                return
+            del data['password']
+            if check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname']) == -1:
+                data_list.append(data)
+            else:
+                data_list[check_hostname(data_list,data['ipv4'],data['ipv6'],data['hostname'])]=data
+            data_list.sort(key=lambda ele:ele['hostname'].lower())
+        except:
+            pass
     connection.close()
     return
 
